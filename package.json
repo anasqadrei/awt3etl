@@ -1,0 +1,11 @@
+{
+  "name": "awt3etl",
+  "version": "1.0.0",
+  "main": "etl.js",
+  "author": "Anas Qaderi",
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^6.2.0",
+    "mongodb": "^3.1.13"
+  }
+}
