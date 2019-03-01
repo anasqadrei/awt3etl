@@ -166,6 +166,22 @@
     //   await targetDb.collection('songlyrics').insertOne(doc)
     // }
 
+    // copy and transform user artists
+    console.log('userartists')
+    const userartistsCursor = await sourceDb.collection('userartist').find()
+    while(await userartistsCursor.hasNext()) {
+      const doc = await userartistsCursor.next()
+      const newDoc = {
+        _id: {
+          user: doc.user.toString(),
+          artist: doc.artist.toString()
+        },
+        like: doc.liked,
+        plays: doc.plays
+      }
+      await targetDb.collection('userartists').insertOne(newDoc)
+    }
+
     console.log("done")
   } catch (err) {
     console.log(err.stack)
