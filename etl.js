@@ -15,6 +15,7 @@
   let targetClient
 
   try {
+    console.time('all')
     console.log("starting...")
 
     // connect to source
@@ -26,24 +27,6 @@
     targetClient = await MongoClient.connect(targetUrl, { useNewUrlParser: true })
     const targetDb = targetClient.db(targetDbName)
     console.log("connected to target")
-
-    // function doJob(x, sec) {
-    //   console.time(x)
-    //   return new Promise(resolve => {
-    //     console.log(`start ${x}`);
-    //     setTimeout(() => {
-    //       console.timeEnd(x)
-    //       console.log(`end ${x}`);
-    //       resolve()
-    //     }, sec)
-    //   })
-    // }
-
-    console.time('all')
-
-    // let x = doJob('x', 3000)
-    // let y = doJob('y', 2000)
-    // await x + await y
 
     // copy and transform artists
     async function artistsETL() {
