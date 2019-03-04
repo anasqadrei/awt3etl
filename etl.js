@@ -40,6 +40,9 @@
         console.log(e);
       }
 
+      // indexes
+      await targetDb.collection(TARGET_COLLECTION).createIndex( { "name": 1 }, { unique: true, background: true } )
+
       // etl
       const artistCursor = await sourceDb.collection('artists').find({ $or: [{ _id: { $gte: 1, $lte: 5 } }, { _id: { $gte: 6701, $lte: 6705 } }]})
       while(await artistCursor.hasNext()) {
@@ -127,6 +130,10 @@
         console.log(e);
       }
 
+      // indexes
+      await targetDb.collection(TARGET_COLLECTION).createIndex( { "emails": 1 }, { background: true } )
+      await targetDb.collection(TARGET_COLLECTION).createIndex( { "profiles.provider": 1, "profiles.providerId": 1 }, { unique: true, sparse: true, background: true } )
+
       // etl
       const userCursor = await sourceDb.collection('users').find({ $or: [{ _id: { $gte: 1, $lte: 15 } }, { _id: { $gte: 50455, $lte: 50505 } }]})
       while(await userCursor.hasNext()) {
@@ -156,6 +163,10 @@
       } catch (e) {
         console.log(e);
       }
+
+      // indexes
+      await targetDb.collection(TARGET_COLLECTION).createIndex( { "reference.id": 1, "parent": 1, "reference.collection": 1 }, { background: true } )
+      await targetDb.collection('usercomments').createIndex( { "_id.comment": 1 }, { background: true } )
 
       // etl
       const commentCursor = await sourceDb.collection('comments').find({ _id: { $gte: 1, $lte: 150 } })
@@ -203,6 +214,9 @@
         console.log(e);
       }
 
+      // indexes
+      await targetDb.collection(TARGET_COLLECTION).createIndex( { "artist": 1 }, { background: true } )
+
       // etl
       const songCursor = await sourceDb.collection('songs').find({ $or: [{ _id: { $gte: 1, $lte: 50 } }, { _id: { $gte: 150000, $lte: 150005 } }]})
       while(await songCursor.hasNext()) {
@@ -249,6 +263,9 @@
         console.log(e);
       }
 
+      // indexes
+      await targetDb.collection(TARGET_COLLECTION).createIndex( { "song": 1 }, { background: true } )
+
       // etl
       const songimageCursor = await sourceDb.collection('songimages').find({ $or: [{ _id: { $gte: 1, $lte: 200 } }]})
       while(await songimageCursor.hasNext()) {
@@ -281,6 +298,9 @@
         console.log(e);
       }
 
+      // indexes
+      await targetDb.collection(TARGET_COLLECTION).createIndex( { "song": 1 }, { background: true } )
+
       // etl
       const lyricsCursor = await sourceDb.collection('songlyrics').find({ $or: [{ _id: { $gte: 1, $lte: 10 } }]})
       while(await lyricsCursor.hasNext()) {
@@ -306,6 +326,9 @@
       } catch (e) {
         console.log(e);
       }
+
+      // indexes
+      await targetDb.collection(TARGET_COLLECTION).createIndex( { "_id.artist": 1 }, { background: true } )
 
       // etl
       const userartistsCursor = await sourceDb.collection('userartist').find()
