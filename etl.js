@@ -329,6 +329,7 @@
 
       // indexes
       await targetDb.collection(TARGET_COLLECTION).createIndex( { "_id.artist": 1 }, { background: true } )
+      await targetDb.collection(TARGET_COLLECTION).createIndex( { "_id.user": 1 }, { background: true } )
 
       // etl
       const userartistsCursor = await sourceDb.collection('userartist').find()
