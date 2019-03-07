@@ -95,16 +95,27 @@
       const blogpostsCursor = await sourceDb.collection('blogposts').find()
       while(await blogpostsCursor.hasNext()) {
         const doc = await blogpostsCursor.next()
-        doc._id = doc._id.toString()
+        const newDoc = {
+          _id: doc._id.toString(),
+          title: doc.title,
+          content: doc.content,
+          metaTags: doc.metaTags,
+          createdDate: doc.createdDate,
+          views: doc.viewsCount,
+        }
+        // fix the number of comments to incllude replies as well
         try {
-          doc.commentsCount = await sourceDb.collection('comments').countDocuments({
+          const commentCount = await sourceDb.collection('comments').countDocuments({
             'reference.collection': 'blogposts',
             'reference.id': parseInt(doc._id, 10)
           })
+          if (commentCount) {
+            newDoc.comments = commentCount
+          }
         } catch (e) {
           console.log(e);
         }
-        await targetDb.collection(TARGET_COLLECTION).insertOne(doc)
+        await targetDb.collection(TARGET_COLLECTION).insertOne(newDoc)
       }
 
       // end
