@@ -47,16 +47,32 @@
       const artistCursor = await sourceDb.collection('artists').find({ $or: [{ _id: { $gte: 1, $lte: 5 } }, { _id: { $gte: 6701, $lte: 6705 } }]})
       while(await artistCursor.hasNext()) {
         const doc = await artistCursor.next()
-        doc._id = doc._id.toString()
+        const newDoc = {
+          _id: doc._id.toString(),
+          name: doc.name,
+          createdDate: doc.createdDate,
+          image: doc.image,
+          likes: doc.likersCount,
+          songs: doc.songsCount,
+          songPlays: doc.songsPlaysCount,
+          songListeners: doc.songsListenersCount,
+          songDownloads: doc.songsDownloadsCount,
+          songLikes: doc.songsLikedCount,
+          songImages: doc.songsImagesCount
+        }
+        // fix the number of comments to incllude replies as well
         try {
-          doc.commentsCount = await sourceDb.collection('comments').countDocuments({
+          const commentCount = await sourceDb.collection('comments').countDocuments({
             'reference.collection': 'artists',
             'reference.id': parseInt(doc._id, 10)
           })
+          if (commentCount) {
+            newDoc.comments = commentCount
+          }
         } catch (e) {
           console.log(e);
         }
-        await targetDb.collection(TARGET_COLLECTION).insertOne(doc)
+        await targetDb.collection(TARGET_COLLECTION).insertOne(newDoc)
       }
 
       // end
