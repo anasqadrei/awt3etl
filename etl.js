@@ -16,7 +16,7 @@
 
   try {
     console.time('all')
-    console.log("starting...")
+    console.log(Date() + " starting...")
 
     // connect to source
     sourceClient = await MongoClient.connect(sourceUrl, { useNewUrlParser: true })
@@ -64,7 +64,7 @@
         try {
           const commentCount = await sourceDb.collection('comments').countDocuments({
             'reference.collection': 'artists',
-            'reference.id': parseInt(doc._id, 10)
+            'reference.id': doc._id
           })
           if (commentCount) {
             newDoc.comments = commentCount
@@ -107,7 +107,7 @@
         try {
           const commentCount = await sourceDb.collection('comments').countDocuments({
             'reference.collection': 'blogposts',
-            'reference.id': parseInt(doc._id, 10)
+            'reference.id': doc._id
           })
           if (commentCount) {
             newDoc.comments = commentCount
@@ -199,30 +199,39 @@
       const commentCursor = await sourceDb.collection('comments').find({ _id: { $gte: 1, $lte: 150 } })
       while(await commentCursor.hasNext()) {
         const doc = await commentCursor.next()
-        doc._id = doc._id.toString()
-        doc.reference.id = doc.reference.id.toString()
+        const newDoc = {
+          _id: doc._id.toString(),
+          text: doc.text,
+          reference: {
+            collection: doc.reference.collection,
+            id: doc.reference.id.toString()
+          },
+          user: doc.user.toString(),
+          createdDate: doc.createdDate
+        }
         if (doc.parent) {
-          doc.parent = doc.parent.toString()
+          newDoc.parent = doc.parent.toString()
         }
-        for (let i = 0; doc.children && i < doc.children.length; i++) {
-          doc.children[i] = doc.children[i].toString()
+        if (doc.children) {
+          newDoc.children = []
+          for (let i = 0; i < doc.children.length; i++) {
+            newDoc.children.push(doc.children[i].toString())
+          }
         }
-        doc.user = doc.user.toString()
         if (doc.likers) {
-          doc.likeCount = doc.likers.length
+          newDoc.likes = doc.likers.length
           for (let i = 0; i < doc.likers.length; i++) {
             const liker = {
               _id: {
                 user: doc.likers[i].toString(),
-                comment: doc._id
+                comment: doc._id.toString()
               },
               like: true
             }
             await targetDb.collection('usercomments').insertOne(liker)
           }
         }
-        delete doc.likers
-        await targetDb.collection(TARGET_COLLECTION).insertOne(doc)
+        await targetDb.collection(TARGET_COLLECTION).insertOne(newDoc)
       }
 
       // end
@@ -266,7 +275,7 @@
         try {
           doc.commentsCount = await sourceDb.collection('comments').countDocuments({
             'reference.collection': 'songs',
-            'reference.id': parseInt(doc._id, 10)
+            'reference.id': doc._id
           })
         } catch (e) {
           console.log(e);
