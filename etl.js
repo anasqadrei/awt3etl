@@ -257,30 +257,48 @@
       const songCursor = await sourceDb.collection('songs').find({ $or: [{ _id: { $gte: 1, $lte: 50 } }, { _id: { $gte: 150000, $lte: 150005 } }]})
       while(await songCursor.hasNext()) {
         const doc = await songCursor.next()
-        doc._id = doc._id.toString()
-        doc.artist = doc.artist.toString()
-        doc.uploader = doc.uploader.toString()
-        if (doc.images) {
-          doc.imagesList = []
-          for (let i = 0; i < doc.images.length; i++) {
-            doc.imagesList[i] = doc.images[i].toString()
-          }
-          delete doc.images
+        const newDoc = {
+          _id: doc._id.toString(),
+          title: doc.title,
+          artist: doc.artist.toString(),
+          desc: doc.desc,
+          tags: doc.tags,
+          createdDate: doc.createdDate,
+          plays: doc.playsCount,
+          listeners: doc.listenersCount,
+          downloads: doc.downloadsCount,
+          likes: doc.likesCount,
+          dislikes: doc.dislikesCount,
+          image: doc.image,
+          uploader: doc.uploader.toString(),
+          fileSize: doc.fileSize,
+          duration: doc.duration,
+          fileType: doc.fileType,
+          bitrate: doc.bitrate,
+          sampleRate: doc.sampleRate
         }
-        if (doc.lyrics) {
-          doc.lyrics = doc.lyrics.toString()
-        }
-        delete doc.videos
-        delete doc.vidoesCount
+        // fix the number of comments to incllude replies as well
         try {
-          doc.commentsCount = await sourceDb.collection('comments').countDocuments({
+          const commentCount = await sourceDb.collection('comments').countDocuments({
             'reference.collection': 'songs',
             'reference.id': doc._id
           })
+          if (commentCount) {
+            newDoc.comments = commentCount
+          }
         } catch (e) {
           console.log(e);
         }
-        await targetDb.collection(TARGET_COLLECTION).insertOne(doc)
+        if (doc.images) {
+          newDoc.imagesList = []
+          for (let i = 0; i < doc.images.length; i++) {
+            newDoc.imagesList.push(doc.images[i].toString())
+          }
+        }
+        if (doc.lyrics) {
+          newDoc.lyrics = doc.lyrics.toString()
+        }
+        await targetDb.collection(TARGET_COLLECTION).insertOne(newDoc)
       }
 
       // end
