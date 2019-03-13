@@ -50,7 +50,7 @@
         const newDoc = {
           _id: doc._id.toString(),
           name: doc.name,
-          createdDate: doc.createdDate,
+          createdDate: new Date(doc.createdDate),
           image: doc.image,
           likes: doc.likersCount,
           songs: doc.songsCount,
@@ -100,7 +100,7 @@
           title: doc.title,
           content: doc.content,
           metaTags: doc.metaTags,
-          createdDate: doc.createdDate,
+          createdDate: new Date(doc.createdDate),
           views: doc.viewsCount,
         }
         // fix the number of comments to incllude replies as well
@@ -166,6 +166,16 @@
       while(await userCursor.hasNext()) {
         const doc = await userCursor.next()
         doc._id = doc._id.toString()
+        doc.createdDate = new Date(doc.joined)
+        delete doc.joined
+        doc.lastUpdatedDate = new Date(doc.lastUpdated)
+        delete doc.lastUpdated
+        if (doc.lastSeen) {
+          doc.lastSeen = new Date(doc.lastSeen)
+        }
+        if (doc.birthDate) {
+          doc.birthDate = new Date(doc.birthDate)
+        }
         delete doc.recentlyPlayed
         await targetDb.collection(TARGET_COLLECTION).insertOne(doc)
       }
@@ -207,7 +217,7 @@
             id: doc.reference.id.toString()
           },
           user: doc.user.toString(),
-          createdDate: doc.createdDate
+          createdDate: new Date(doc.createdDate)
         }
         if (doc.parent) {
           newDoc.parent = doc.parent.toString()
@@ -263,7 +273,8 @@
           artist: doc.artist.toString(),
           desc: doc.desc,
           tags: doc.tags,
-          createdDate: doc.createdDate,
+          createdDate: new Date(doc.createdDate),
+          lastUpdatedDate: new Date(doc.createdDate),
           plays: doc.playsCount,
           listeners: doc.listenersCount,
           downloads: doc.downloadsCount,
@@ -326,6 +337,7 @@
         const doc = await songimageCursor.next()
         doc._id = doc._id.toString()
         doc.song = doc.song.toString()
+        doc.createdDate = new Date(doc.createdDate)
         doc.addedBy = doc.addedBy.toString()
         for (let i = 0; doc.likers && i < doc.likers.length; i++) {
           doc.likers[i] = doc.likers[i].toString()
@@ -361,6 +373,8 @@
         const doc = await lyricsCursor.next()
         doc._id = doc._id.toString()
         doc.song = doc.song.toString()
+        doc.createdDate = new Date(doc.createdDate)
+        doc.lastUpdatedDate = new Date(doc.createdDate),
         doc.addedBy = doc.addedBy.toString()
         await targetDb.collection(TARGET_COLLECTION).insertOne(doc)
       }
