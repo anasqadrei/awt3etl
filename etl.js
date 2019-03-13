@@ -281,7 +281,7 @@
           likes: doc.likesCount,
           dislikes: doc.dislikesCount,
           image: doc.image,
-          uploader: doc.uploader.toString(),
+          user: doc.uploader.toString(),
           fileSize: doc.fileSize,
           duration: doc.duration,
           fileType: doc.fileType,
@@ -338,7 +338,8 @@
         doc._id = doc._id.toString()
         doc.song = doc.song.toString()
         doc.createdDate = new Date(doc.createdDate)
-        doc.addedBy = doc.addedBy.toString()
+        doc.user = doc.addedBy.toString()
+        delete doc.addedBy
         for (let i = 0; doc.likers && i < doc.likers.length; i++) {
           doc.likers[i] = doc.likers[i].toString()
         }
@@ -375,7 +376,8 @@
         doc.song = doc.song.toString()
         doc.createdDate = new Date(doc.createdDate)
         doc.lastUpdatedDate = new Date(doc.createdDate),
-        doc.addedBy = doc.addedBy.toString()
+        doc.user = doc.addedBy.toString()
+        delete doc.addedBy
         await targetDb.collection(TARGET_COLLECTION).insertOne(doc)
       }
 
