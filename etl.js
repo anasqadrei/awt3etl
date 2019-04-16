@@ -409,9 +409,58 @@
           _id: {
             user: doc.user.toString(),
             artist: doc.artist.toString()
-          },
-          like: doc.liked,
-          plays: doc.plays
+          }
+        }
+        if (doc.liked) {
+          newDoc.like = doc.liked
+        }
+        if (doc.plays) {
+          newDoc.plays = doc.plays
+        }
+        await targetDb.collection(TARGET_COLLECTION).insertOne(newDoc)
+      }
+
+      // end
+      console.timeEnd(TARGET_COLLECTION)
+    }
+
+    // copy and transform usersongs
+    async function usersongsETL() {
+      // start
+      const TARGET_COLLECTION = 'usersongs'
+      console.time(TARGET_COLLECTION)
+      console.log(`start ${TARGET_COLLECTION}`)
+      try {
+        await targetDb.collection(TARGET_COLLECTION).drop()
+      } catch (e) {
+        console.log(e);
+      }
+
+      // indexes
+      await targetDb.collection(TARGET_COLLECTION).createIndex( { "_id.song": 1 }, { background: true } )
+      await targetDb.collection(TARGET_COLLECTION).createIndex( { "_id.user": 1 }, { background: true } )
+
+      // etl
+      const usersongsCursor = await sourceDb.collection('usersong').find()
+      while(await usersongsCursor.hasNext()) {
+        const doc = await usersongsCursor.next()
+        const newDoc = {
+          _id: {
+            user: doc.user.toString(),
+            song: doc.song.toString()
+          }
+        }
+        if (doc.like) {
+          newDoc.like = doc.like
+        }
+        if (doc.dislike) {
+          newDoc.dislike = doc.dislike
+        }
+        if (doc.plays) {
+          newDoc.plays = doc.plays
+        }
+        if (doc.downloads) {
+          newDoc.downloads = doc.downloads
         }
         await targetDb.collection(TARGET_COLLECTION).insertOne(newDoc)
       }
@@ -429,6 +478,7 @@
     let songimages = songimagesETL()
     let songlyrics = songlyricsETL()
     let userartists = userartistsETL()
+    let usersongs = usersongsETL()
 
     // run all in parallel
     await artists +
@@ -439,7 +489,8 @@
     await songs +
     await songimages +
     await songlyrics +
-    await userartists
+    await userartists +
+    await usersongs
 
     console.timeEnd('all')
     console.log("done")
