@@ -55,7 +55,7 @@
           likes: doc.likersCount,
           songs: doc.songsCount,
           songPlays: doc.songsPlaysCount,
-          songListeners: doc.songsListenersCount,
+          songUsersPlayed: doc.songsListenersCount,
           songDownloads: doc.songsDownloadsCount,
           songLikes: doc.songsLikedCount,
           songImages: doc.songsImagesCount
@@ -276,7 +276,7 @@
           createdDate: new Date(doc.createdDate),
           lastUpdatedDate: new Date(doc.createdDate),
           plays: doc.playsCount,
-          listeners: doc.listenersCount,
+          usersPlayed: doc.listenersCount,
           downloads: doc.downloadsCount,
           likes: doc.likesCount,
           dislikes: doc.dislikesCount,
