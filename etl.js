@@ -272,7 +272,7 @@
           title: doc.title,
           artist: doc.artist.toString(),
           desc: doc.desc,
-          tags: doc.tags,
+          hashtags: doc.tags,
           createdDate: new Date(doc.createdDate),
           lastUpdatedDate: new Date(doc.createdDate),
           plays: doc.playsCount,
