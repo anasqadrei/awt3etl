@@ -50,25 +50,24 @@
         const newDoc = {
           _id: doc._id.toString(),
           name: doc.name,
-          createdDate: new Date(doc.createdDate),
-          image: doc.image,
-          likes: doc.likersCount,
-          songs: doc.songsCount,
-          songPlays: doc.songsPlaysCount,
-          songUsersPlayed: doc.songsListenersCount,
-          songDownloads: doc.songsDownloadsCount,
-          songLikes: doc.songsLikedCount,
-          songImages: doc.songsImagesCount
+          createdDate: new Date(doc.createdDate)
         }
+        if (doc.image) newDoc.image = doc.image
+        if (doc.likersCount) newDoc.likes = doc.likersCount
+        if (doc.songsCount) newDoc.songs = doc.songsCount
+        if (doc.songsPlaysCount) newDoc.songPlays = doc.songsPlaysCount
+        if (doc.songsListenersCount) newDoc.songUsersPlayed = doc.songsListenersCount
+        if (doc.songsDownloadsCount) newDoc.songDownloads = doc.songsDownloadsCount
+        if (doc.songsLikedCount) newDoc.songLikes = doc.songsLikedCount
+        if (doc.songsImagesCount) newDoc.songImages = doc.songsImagesCount
+
         // fix the number of comments to incllude replies as well
         try {
           const commentCount = await sourceDb.collection('comments').countDocuments({
             'reference.collection': 'artists',
             'reference.id': doc._id
           })
-          if (commentCount) {
-            newDoc.comments = commentCount
-          }
+          if (commentCount) newDoc.comments = commentCount
         } catch (e) {
           console.log(e);
         }
@@ -109,9 +108,7 @@
             'reference.collection': 'blogposts',
             'reference.id': doc._id
           })
-          if (commentCount) {
-            newDoc.comments = commentCount
-          }
+          if (commentCount) newDoc.comments = commentCount
         } catch (e) {
           console.log(e);
         }
@@ -171,8 +168,9 @@
         doc.lastUpdatedDate = new Date(doc.lastUpdated)
         delete doc.lastUpdated
         if (doc.lastSeen) {
-          doc.lastSeen = new Date(doc.lastSeen)
+          doc.lastSeenDate = new Date(doc.lastSeen)
         }
+        delete doc.lastSeen
         if (doc.birthDate) {
           doc.birthDate = new Date(doc.birthDate)
         }
@@ -219,9 +217,7 @@
           user: doc.user.toString(),
           createdDate: new Date(doc.createdDate)
         }
-        if (doc.parent) {
-          newDoc.parent = doc.parent.toString()
-        }
+        if (doc.parent) newDoc.parent = doc.parent.toString()
         if (doc.children) {
           newDoc.children = []
           for (let i = 0; i < doc.children.length; i++) {
@@ -271,32 +267,29 @@
           _id: doc._id.toString(),
           title: doc.title,
           artist: doc.artist.toString(),
-          desc: doc.desc,
-          hashtags: doc.tags,
           createdDate: new Date(doc.createdDate),
-          lastUpdatedDate: new Date(doc.createdDate),
-          plays: doc.playsCount,
-          usersPlayed: doc.listenersCount,
-          downloads: doc.downloadsCount,
-          likes: doc.likesCount,
-          dislikes: doc.dislikesCount,
-          image: doc.image,
-          user: doc.uploader.toString(),
-          fileSize: doc.fileSize,
-          duration: doc.duration,
-          fileType: doc.fileType,
-          bitrate: doc.bitrate,
-          sampleRate: doc.sampleRate
+          user: doc.uploader.toString()
         }
+        if (doc.desc) newDoc.desc = doc.desc
+        if (doc.tags) newDoc.hashtags = doc.tags
+        if (doc.playsCount) newDoc.plays = doc.playsCount
+        if (doc.listenersCount) newDoc.usersPlayed = doc.listenersCount
+        if (doc.downloadsCount) newDoc.downloads = doc.downloadsCount
+        if (doc.likesCount) newDoc.likes = doc.likesCount
+        if (doc.dislikesCount) newDoc.dislikes = doc.dislikesCount
+        if (doc.image) newDoc.image = doc.image
+        if (doc.fileSize) newDoc.fileSize = doc.fileSize
+        if (doc.duration) newDoc.duration = doc.duration
+        if (doc.fileType) newDoc.fileType = doc.fileType
+        if (doc.bitrate) newDoc.bitRate = doc.bitrate
+        if (doc.sampleRate) newDoc.sampleRate = doc.sampleRate
         // fix the number of comments to incllude replies as well
         try {
           const commentCount = await sourceDb.collection('comments').countDocuments({
             'reference.collection': 'songs',
             'reference.id': doc._id
           })
-          if (commentCount) {
-            newDoc.comments = commentCount
-          }
+          if (commentCount) newDoc.comments = commentCount
         } catch (e) {
           console.log(e);
         }
@@ -375,7 +368,6 @@
         doc._id = doc._id.toString()
         doc.song = doc.song.toString()
         doc.createdDate = new Date(doc.createdDate)
-        doc.lastUpdatedDate = new Date(doc.createdDate),
         doc.user = doc.addedBy.toString()
         delete doc.addedBy
         await targetDb.collection(TARGET_COLLECTION).insertOne(doc)
@@ -411,12 +403,8 @@
             artist: doc.artist.toString()
           }
         }
-        if (doc.liked) {
-          newDoc.like = doc.liked
-        }
-        if (doc.plays) {
-          newDoc.plays = doc.plays
-        }
+        if (doc.liked) newDoc.like = doc.liked
+        if (doc.plays) newDoc.plays = doc.plays
         await targetDb.collection(TARGET_COLLECTION).insertOne(newDoc)
       }
 
@@ -450,18 +438,10 @@
             song: doc.song.toString()
           }
         }
-        if (doc.like) {
-          newDoc.like = doc.like
-        }
-        if (doc.dislike) {
-          newDoc.dislike = doc.dislike
-        }
-        if (doc.plays) {
-          newDoc.plays = doc.plays
-        }
-        if (doc.downloads) {
-          newDoc.downloads = doc.downloads
-        }
+        if (doc.like) newDoc.like = doc.like
+        if (doc.dislike) newDoc.dislike = doc.dislike
+        if (doc.plays) newDoc.plays = doc.plays
+        if (doc.downloads) newDoc.downloads = doc.downloads
         await targetDb.collection(TARGET_COLLECTION).insertOne(newDoc)
       }
 
