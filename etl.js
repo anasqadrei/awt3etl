@@ -155,27 +155,40 @@
       }
 
       // indexes
-      await targetDb.collection(TARGET_COLLECTION).createIndex( { "emails": 1 }, { background: true } )
-      await targetDb.collection(TARGET_COLLECTION).createIndex( { "profiles.provider": 1, "profiles.providerId": 1 }, { unique: true, sparse: true, background: true } )
+      await targetDb.collection(TARGET_COLLECTION).createIndex( { "emails": 1 }, { partialFilterExpression: { "emails": { $exists: true } }, unique: true, background: true } )
+      await targetDb.collection(TARGET_COLLECTION).createIndex( { "profiles.provider": 1, "profiles.providerId": 1 }, { partialFilterExpression: { "profiles.provider": { $exists: true }, "profiles.providerId": { $exists: true } },  unique: true, background: true } )
 
       // etl
       const userCursor = await sourceDb.collection('users').find({ $or: [{ _id: { $gte: 1, $lte: 15 } }, { _id: { $gte: 50455, $lte: 50505 } }]})
       while(await userCursor.hasNext()) {
         const doc = await userCursor.next()
-        doc._id = doc._id.toString()
-        doc.createdDate = new Date(doc.joined)
-        delete doc.joined
-        doc.lastUpdatedDate = new Date(doc.lastUpdated)
-        delete doc.lastUpdated
-        if (doc.lastSeen) {
-          doc.lastSeenDate = new Date(doc.lastSeen)
+        const newDoc = {
+          _id: doc._id.toString(),
+          username: doc.username,
+          createdDate: new Date(doc.joined),
+          admin: doc.admin
         }
-        delete doc.lastSeen
-        if (doc.birthDate) {
-          doc.birthDate = new Date(doc.birthDate)
+        if (doc.lastUpdated) newDoc.lastUpdatedDate = new Date(doc.lastUpdated)
+        if (doc.lastSeen) newDoc.lastSeenDate = new Date(doc.lastSeen)
+        if (doc.birthDate) newDoc.birthDate = new Date(doc.birthDate)
+        if (doc.image) newDoc.image = doc.image
+        if (doc.signature) newDoc.signature = doc.signature
+        if (doc.sex) newDoc.sex = doc.sex
+        if (doc.country) newDoc.country = doc.country
+        if (doc.emails && doc.emails.length > 0) {
+          newDoc.emails = []
+          for (const email of doc.emails) {
+            newDoc.emails.push(email)
+          }
         }
-        delete doc.recentlyPlayed
-        await targetDb.collection(TARGET_COLLECTION).insertOne(doc)
+        if (doc.profiles && doc.profiles.length > 0) {
+          newDoc.profiles = []
+          for (const profile of doc.profiles) {
+            delete profile._id
+            newDoc.profiles.push(profile)
+          }
+        }
+        await targetDb.collection(TARGET_COLLECTION).insertOne(newDoc)
       }
 
       // end
