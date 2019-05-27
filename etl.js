@@ -155,7 +155,7 @@
       }
 
       // indexes
-      await targetDb.collection(TARGET_COLLECTION).createIndex( { "emails": 1 }, { partialFilterExpression: { "emails": { $exists: true } }, unique: true, background: true } )
+      await targetDb.collection(TARGET_COLLECTION).createIndex( { "emails": 1 }, { partialFilterExpression: { "emails": { $exists: true } }, collation:{ locale: "en", strength: 1 }, unique: true, background: true } )
       await targetDb.collection(TARGET_COLLECTION).createIndex( { "profiles.provider": 1, "profiles.providerId": 1 }, { partialFilterExpression: { "profiles.provider": { $exists: true }, "profiles.providerId": { $exists: true } },  unique: true, background: true } )
 
       // etl
