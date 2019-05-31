@@ -336,6 +336,8 @@
 
       // indexes
       await targetDb.collection(TARGET_COLLECTION).createIndex( { "song": 1 }, { background: true } )
+      await targetDb.collection(TARGET_COLLECTION).createIndex( { "likers": 1 }, { background: true } )
+      await targetDb.collection(TARGET_COLLECTION).createIndex( { "dislikers": 1 }, { background: true } )
 
       // etl
       const songimageCursor = await sourceDb.collection('songimages').find({ $or: [{ _id: { $gte: 1, $lte: 200 } }]})
