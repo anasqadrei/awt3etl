@@ -290,7 +290,7 @@
         if (doc.downloadsCount) newDoc.downloads = doc.downloadsCount
         if (doc.likesCount) newDoc.likes = doc.likesCount
         if (doc.dislikesCount) newDoc.dislikes = doc.dislikesCount
-        if (doc.image) newDoc.image = doc.image
+        if (doc.image) newDoc.defaultImage = doc.image
         if (doc.fileSize) newDoc.fileSize = doc.fileSize
         if (doc.duration) newDoc.duration = doc.duration
         if (doc.fileType) newDoc.fileType = doc.fileType
