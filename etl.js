@@ -3,16 +3,23 @@
 (async function() {
   require('dotenv').config()
   const MongoClient = require('mongodb').MongoClient
+  const { Client } = require('@elastic/elasticsearch')
+  const AWS_ES_INDEX_ARTISTS = "artists"
+  const AWS_ES_INDEX_SONGS = "songs"
+  const AWS_ES_INDEX_PLAYLISTS = "playlists"
 
-  // source
+  // source db
   const sourceUrl = process.env.SOURCE_DB_URL
   const sourceDbName = process.env.SOURCE_DB_NAME
   let sourceClient
 
-  // target
+  // target db
   const targetUrl = process.env.TARGET_DB_URL
   const targetDbName = process.env.TARGET_DB_NAME
   let targetClient
+
+  // elasticsearch
+  const esClient = new Client({ node: process.env.AWS_ES_ENDPOINT })
 
   try {
     console.time('all')
@@ -36,6 +43,41 @@
       console.log(`start ${TARGET_COLLECTION}`)
       try {
         await targetDb.collection(TARGET_COLLECTION).drop()
+        // TODO: search_as_you_type datatype??
+        await esClient.indices.delete({ index: AWS_ES_INDEX_ARTISTS })
+        await esClient.indices.create({
+          index: AWS_ES_INDEX_ARTISTS,
+          body: {
+            mappings: {
+              _doc: {
+                properties: {
+                  "artistName": {
+                    type: "text",
+                    fields: {
+                      "arabic": {
+                        type: "text",
+                        analyzer: "arabic"
+                      }
+                    }
+                  },
+                  "metaTitle": {
+                    type: "text",
+                    fields: {
+                      "arabic": {
+                        type: "text",
+                        analyzer: "arabic"
+                      }
+                    }
+                  },
+                  "image": {
+                    type: "keyword",
+                    index: false
+                  }
+                }
+              }
+            }
+          }
+        })
       } catch (e) {
         console.log(e);
       }
@@ -52,7 +94,7 @@
           name: doc.name,
           createdDate: new Date(doc.createdDate)
         }
-        if (doc.image) newDoc.image = doc.image
+        if (doc.image) newDoc.image = doc.image.toString()
         if (doc.likersCount) newDoc.likes = doc.likersCount
         if (doc.songsCount) newDoc.songs = doc.songsCount
         if (doc.songsPlaysCount) newDoc.songPlays = doc.songsPlaysCount
@@ -72,6 +114,22 @@
           console.log(e);
         }
         await targetDb.collection(TARGET_COLLECTION).insertOne(newDoc)
+
+        // index at elasticsearch
+        const esDoc = {
+          index: AWS_ES_INDEX_ARTISTS,
+          id: newDoc._id,
+          body: {
+            artistName: newDoc.name,
+            metaTitle: newDoc.name
+          }
+        }
+        if (newDoc.image) esDoc.body.image = newDoc.image
+        try {
+          await esClient.index(esDoc)
+        } catch (e) {
+          console.log(e);
+        }
       }
 
       // end
@@ -265,6 +323,71 @@
       console.log(`start ${TARGET_COLLECTION}`)
       try {
         await targetDb.collection(TARGET_COLLECTION).drop()
+        // TODO: search_as_you_type datatype??
+        await esClient.indices.delete({ index: AWS_ES_INDEX_SONGS })
+        await esClient.indices.create({
+          index: AWS_ES_INDEX_SONGS,
+          body: {
+            mappings: {
+              _doc: {
+                properties: {
+                  "metaTitle": {
+                    type: "text",
+                    fields: {
+                      "arabic": {
+                        type: "text",
+                        analyzer: "arabic"
+                      }
+                    }
+                  },
+                  "image": {
+                    type: "keyword",
+                    index: false
+                  },
+                  "songTitle": {
+                    type: "text",
+                    fields: {
+                      "arabic": {
+                        type: "text",
+                        analyzer: "arabic"
+                      }
+                    }
+                  },
+                  "desc": {
+                    type: "text",
+                    fields: {
+                      "arabic": {
+                        type: "text",
+                        analyzer: "arabic"
+                      }
+                    }
+                  },
+                  "username": {
+                    type: "text",
+                    fields: {
+                      "arabic": {
+                        type: "text",
+                        analyzer: "arabic"
+                      }
+                    }
+                  },
+                  "durationDesc": {
+                    type: "keyword"
+                  },
+                  "lyrics": {
+                    type: "text",
+                    fields: {
+                      "arabic": {
+                        type: "text",
+                        analyzer: "arabic"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        })
       } catch (e) {
         console.log(e);
       }
@@ -273,7 +396,50 @@
       await targetDb.collection(TARGET_COLLECTION).createIndex( { "artist": 1 }, { background: true } )
 
       // etl
-      const songCursor = await sourceDb.collection('songs').find({ $or: [{ _id: { $gte: 1, $lte: 50 } }, { _id: { $gte: 150000, $lte: 150005 } }]})
+      const songCursor = await sourceDb.collection('songs').aggregate([
+        {
+          '$match': {
+            '$or': [
+              {
+                '_id': {
+                  '$gte': 1,
+                  '$lte': 50
+                }
+              }, {
+                '_id': {
+                  '$gte': 150000,
+                  '$lte': 150005
+                }
+              }
+            ]
+          }
+        },
+        {
+          '$lookup': {
+            'from': 'artists',
+            'localField': 'artist',
+            'foreignField': '_id',
+            'as': 'artistDoc'
+          }
+        },
+        {
+          '$lookup': {
+            'from': 'users',
+            'localField': 'uploader',
+            'foreignField': '_id',
+            'as': 'userDoc'
+          }
+        },
+        {
+          '$lookup': {
+            'from': 'songlyrics',
+            'localField': 'lyrics',
+            'foreignField': '_id',
+            'as': 'lyricsDoc'
+          }
+        }
+      ])
+
       while(await songCursor.hasNext()) {
         const doc = await songCursor.next()
         const newDoc = {
@@ -316,6 +482,34 @@
           newDoc.lyrics = doc.lyrics.toString()
         }
         await targetDb.collection(TARGET_COLLECTION).insertOne(newDoc)
+
+        // index at elasticsearch
+        const esDoc = {
+          index: AWS_ES_INDEX_SONGS,
+          id: newDoc._id,
+          body: {
+            songTitle: newDoc.title,
+            metaTitle: newDoc.title + ' - ' + doc.artistDoc[0].name,
+            username: doc.userDoc[0].username
+          }
+        }
+        if (newDoc.defaultImage) esDoc.body.image = newDoc.defaultImage
+        if (newDoc.desc) esDoc.body.desc = newDoc.desc
+        if (newDoc.duration) {
+          esDoc.body.durationDesc = new Date(null, null, null, null, null, newDoc.duration/1000).toTimeString().match(/\d{2}:\d{2}:\d{2}/)[0].replace(/^00:/,'').replace(/^[0]+/,'')
+          //fix if duration is less than a min. add 00 as minutes
+          if (esDoc.body.durationDesc.length === 3) {
+            esDoc.body.durationDesc = '0' + esDoc.body.durationDesc
+          }
+        }
+        if (newDoc.lyrics && doc.lyricsDoc && doc.lyricsDoc[0]) {
+          esDoc.body.lyrics = doc.lyricsDoc[0].content.replace(/<br\/>/g, ' ')
+        }
+        try {
+          await esClient.index(esDoc)
+        } catch (e) {
+          console.log(e);
+        }
       }
 
       // end
@@ -464,6 +658,123 @@
       console.timeEnd(TARGET_COLLECTION)
     }
 
+    // index playlists
+    async function playlistsETL() {
+      // start
+      const TARGET_COLLECTION = 'playlists'
+      console.time(TARGET_COLLECTION)
+      console.log(`start ${TARGET_COLLECTION}`)
+      try {
+        // TODO: search_as_you_type datatype??
+        try {
+          await esClient.indices.delete({ index: AWS_ES_INDEX_PLAYLISTS })
+        } catch (e) {
+          console.log(e);
+        }
+        await esClient.indices.create({
+          index: AWS_ES_INDEX_PLAYLISTS,
+          body: {
+            mappings: {
+              _doc: {
+                properties: {
+                  "metaTitle": {
+                    type: "text",
+                    fields: {
+                      "arabic": {
+                        type: "text",
+                        analyzer: "arabic"
+                      }
+                    }
+                  },
+                  "image": {
+                    type: "keyword",
+                    index: false
+                  },
+                  "desc": {
+                    type: "text",
+                    fields: {
+                      "arabic": {
+                        type: "text",
+                        analyzer: "arabic"
+                      }
+                    }
+                  },
+                  "username": {
+                    type: "text",
+                    fields: {
+                      "arabic": {
+                        type: "text",
+                        analyzer: "arabic"
+                      }
+                    }
+                  },
+                  "durationDesc": {
+                    type: "keyword"
+                  }
+                }
+              }
+            }
+          }
+        })
+      } catch (e) {
+        console.log(e);
+      }
+
+      // etl
+      const playlistCursor = await targetDb.collection('playlists').aggregate([
+        {
+          '$match': {
+            private: false
+          }
+        },
+        {
+          '$lookup': {
+            'from': 'users',
+            'localField': 'user',
+            'foreignField': '_id',
+            'as': 'userDoc'
+          }
+        }
+      ])
+
+      while(await playlistCursor.hasNext()) {
+        const newDoc = await playlistCursor.next()
+
+        // index at elasticsearch
+        const esDoc = {
+          index: AWS_ES_INDEX_PLAYLISTS,
+          id: newDoc._id,
+          body: {
+            metaTitle: newDoc.name//,
+            // username: newDoc.userDoc[0].username
+          }
+        }
+
+        // dev only
+        if (newDoc.userDoc && newDoc.userDoc[0]) {
+          esDoc.body.username = newDoc.userDoc[0].username
+        }
+
+        if (newDoc.image) esDoc.body.image = newDoc.image
+        if (newDoc.desc) esDoc.body.desc = newDoc.desc
+        if (newDoc.duration) {
+          esDoc.body.durationDesc = new Date(null, null, null, null, null, newDoc.duration/1000).toTimeString().match(/\d{2}:\d{2}:\d{2}/)[0].replace(/^00:/,'').replace(/^[0]+/,'')
+          //fix if duration is less than a min. add 00 as minutes
+          if (esDoc.body.durationDesc.length === 3) {
+            esDoc.body.durationDesc = '0' + esDoc.body.durationDesc
+          }
+        }
+        try {
+          await esClient.index(esDoc)
+        } catch (e) {
+          console.log(e);
+        }
+      }
+
+      // end
+      console.timeEnd(TARGET_COLLECTION)
+    }
+
     let artists = artistsETL()
     let blogposts = blogpostsETL()
     let countries = countriesETL()
@@ -474,6 +785,7 @@
     let songlyrics = songlyricsETL()
     let userartists = userartistsETL()
     let usersongs = usersongsETL()
+    let playlists = playlistsETL()
 
     // run all in parallel
     await artists +
@@ -485,7 +797,8 @@
     await songimages +
     await songlyrics +
     await userartists +
-    await usersongs
+    await usersongs +
+    await playlists
 
     console.timeEnd('all')
     console.log("done")
