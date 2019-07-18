@@ -43,8 +43,11 @@
       console.log(`start ${TARGET_COLLECTION}`)
       try {
         await targetDb.collection(TARGET_COLLECTION).drop()
-        // TODO: search_as_you_type datatype??
-        await esClient.indices.delete({ index: AWS_ES_INDEX_ARTISTS })
+        try {
+          await esClient.indices.delete({ index: AWS_ES_INDEX_ARTISTS })
+        } catch (e) {
+          console.log("error at delete AWS_ES_INDEX_ARTISTS");
+        }
         await esClient.indices.create({
           index: AWS_ES_INDEX_ARTISTS,
           body: {
@@ -323,8 +326,11 @@
       console.log(`start ${TARGET_COLLECTION}`)
       try {
         await targetDb.collection(TARGET_COLLECTION).drop()
-        // TODO: search_as_you_type datatype??
-        await esClient.indices.delete({ index: AWS_ES_INDEX_SONGS })
+        try {
+          await esClient.indices.delete({ index: AWS_ES_INDEX_SONGS })
+        } catch (e) {
+          console.log("error at delete AWS_ES_INDEX_SONGS");
+        }
         await esClient.indices.create({
           index: AWS_ES_INDEX_SONGS,
           body: {
@@ -503,7 +509,7 @@
           }
         }
         if (newDoc.lyrics && doc.lyricsDoc && doc.lyricsDoc[0]) {
-          esDoc.body.lyrics = doc.lyricsDoc[0].content.replace(/<br\/>/g, ' ')
+          esDoc.body.lyrics = doc.lyricsDoc[0].content.replace(/<.*?>/g, ' ').trim()
         }
         try {
           await esClient.index(esDoc)
@@ -665,11 +671,10 @@
       console.time(TARGET_COLLECTION)
       console.log(`start ${TARGET_COLLECTION}`)
       try {
-        // TODO: search_as_you_type datatype??
         try {
           await esClient.indices.delete({ index: AWS_ES_INDEX_PLAYLISTS })
         } catch (e) {
-          console.log(e);
+          console.log("error at delete AWS_ES_INDEX_PLAYLISTS");
         }
         await esClient.indices.create({
           index: AWS_ES_INDEX_PLAYLISTS,
@@ -750,6 +755,7 @@
           }
         }
 
+        // TODO: remove this
         // dev only
         if (newDoc.userDoc && newDoc.userDoc[0]) {
           esDoc.body.username = newDoc.userDoc[0].username
