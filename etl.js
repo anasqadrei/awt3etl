@@ -52,30 +52,28 @@
           index: AWS_ES_INDEX_ARTISTS,
           body: {
             mappings: {
-              _doc: {
-                properties: {
-                  "artistName": {
-                    type: "text",
-                    fields: {
-                      "arabic": {
-                        type: "text",
-                        analyzer: "arabic"
-                      }
+              properties: {
+                "artistName": {
+                  type: "text",
+                  fields: {
+                    "arabic": {
+                      type: "text",
+                      analyzer: "arabic"
                     }
-                  },
-                  "metaTitle": {
-                    type: "text",
-                    fields: {
-                      "arabic": {
-                        type: "text",
-                        analyzer: "arabic"
-                      }
-                    }
-                  },
-                  "image": {
-                    type: "keyword",
-                    index: false
                   }
+                },
+                "metaTitle": {
+                  type: "text",
+                  fields: {
+                    "arabic": {
+                      type: "text",
+                      analyzer: "arabic"
+                    }
+                  }
+                },
+                "image": {
+                  type: "keyword",
+                  index: false
                 }
               }
             }
@@ -335,58 +333,56 @@
           index: AWS_ES_INDEX_SONGS,
           body: {
             mappings: {
-              _doc: {
-                properties: {
-                  "metaTitle": {
-                    type: "text",
-                    fields: {
-                      "arabic": {
-                        type: "text",
-                        analyzer: "arabic"
-                      }
+              properties: {
+                "metaTitle": {
+                  type: "text",
+                  fields: {
+                    "arabic": {
+                      type: "text",
+                      analyzer: "arabic"
                     }
-                  },
-                  "image": {
-                    type: "keyword",
-                    index: false
-                  },
-                  "songTitle": {
-                    type: "text",
-                    fields: {
-                      "arabic": {
-                        type: "text",
-                        analyzer: "arabic"
-                      }
+                  }
+                },
+                "image": {
+                  type: "keyword",
+                  index: false
+                },
+                "songTitle": {
+                  type: "text",
+                  fields: {
+                    "arabic": {
+                      type: "text",
+                      analyzer: "arabic"
                     }
-                  },
-                  "desc": {
-                    type: "text",
-                    fields: {
-                      "arabic": {
-                        type: "text",
-                        analyzer: "arabic"
-                      }
+                  }
+                },
+                "desc": {
+                  type: "text",
+                  fields: {
+                    "arabic": {
+                      type: "text",
+                      analyzer: "arabic"
                     }
-                  },
-                  "username": {
-                    type: "text",
-                    fields: {
-                      "arabic": {
-                        type: "text",
-                        analyzer: "arabic"
-                      }
+                  }
+                },
+                "username": {
+                  type: "text",
+                  fields: {
+                    "arabic": {
+                      type: "text",
+                      analyzer: "arabic"
                     }
-                  },
-                  "durationDesc": {
-                    type: "keyword"
-                  },
-                  "lyrics": {
-                    type: "text",
-                    fields: {
-                      "arabic": {
-                        type: "text",
-                        analyzer: "arabic"
-                      }
+                  }
+                },
+                "durationDesc": {
+                  type: "keyword"
+                },
+                "lyrics": {
+                  type: "text",
+                  fields: {
+                    "arabic": {
+                      type: "text",
+                      analyzer: "arabic"
                     }
                   }
                 }
@@ -680,42 +676,40 @@
           index: AWS_ES_INDEX_PLAYLISTS,
           body: {
             mappings: {
-              _doc: {
-                properties: {
-                  "metaTitle": {
-                    type: "text",
-                    fields: {
-                      "arabic": {
-                        type: "text",
-                        analyzer: "arabic"
-                      }
+              properties: {
+                "metaTitle": {
+                  type: "text",
+                  fields: {
+                    "arabic": {
+                      type: "text",
+                      analyzer: "arabic"
                     }
-                  },
-                  "image": {
-                    type: "keyword",
-                    index: false
-                  },
-                  "desc": {
-                    type: "text",
-                    fields: {
-                      "arabic": {
-                        type: "text",
-                        analyzer: "arabic"
-                      }
-                    }
-                  },
-                  "username": {
-                    type: "text",
-                    fields: {
-                      "arabic": {
-                        type: "text",
-                        analyzer: "arabic"
-                      }
-                    }
-                  },
-                  "durationDesc": {
-                    type: "keyword"
                   }
+                },
+                "image": {
+                  type: "keyword",
+                  index: false
+                },
+                "desc": {
+                  type: "text",
+                  fields: {
+                    "arabic": {
+                      type: "text",
+                      analyzer: "arabic"
+                    }
+                  }
+                },
+                "username": {
+                  type: "text",
+                  fields: {
+                    "arabic": {
+                      type: "text",
+                      analyzer: "arabic"
+                    }
+                  }
+                },
+                "durationDesc": {
+                  type: "keyword"
                 }
               }
             }
