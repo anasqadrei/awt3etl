@@ -155,8 +155,9 @@
       }
 
       // indexes
+      await targetDb.collection(TARGET_COLLECTION).createIndex( { "firebaseId": 1 }, { partialFilterExpression: { "firebaseId": { $exists: true } }, unique: true, background: true } )
       await targetDb.collection(TARGET_COLLECTION).createIndex( { "emails": 1 }, { partialFilterExpression: { "emails": { $exists: true } }, collation:{ locale: "en", strength: 1 }, background: true } )
-      await targetDb.collection(TARGET_COLLECTION).createIndex( { "profiles.provider": 1, "profiles.providerId": 1 }, { partialFilterExpression: { "profiles.provider": { $exists: true }, "profiles.providerId": { $exists: true } },  unique: true, background: true } )
+      await targetDb.collection(TARGET_COLLECTION).createIndex( { "profiles.provider": 1, "profiles.providerId": 1 }, { partialFilterExpression: { "profiles.provider": { $exists: true }, "profiles.providerId": { $exists: true } },  background: true } )
 
       // etl
       const userCursor = await sourceDb.collection('users').find({ $or: [{ _id: { $gte: 1, $lte: 15 } }, { _id: { $gte: 50455, $lte: 50505 } }, { _id: { $gte: 32950, $lte: 32960 } }]})
